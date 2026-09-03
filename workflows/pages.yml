@@ -29,9 +29,6 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install pinned face-tracking package
-        run: npm install --no-audit --no-fund
-
       - name: Build same-origin static site
         run: npm run build
 
