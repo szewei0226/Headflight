@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#070d22" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Guide a tiny bird through an endless neon sky using your head position." />
+    <title>HeadFlight — Camera-Controlled Flying Game</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-page">
+      <section class="game-shell" aria-label="HeadFlight camera-controlled game">
+        <header class="game-header">
+          <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">HF</span>
+            <div>
+              <h1>HeadFlight</h1>
+              <p>Move your head. Thread the sky.</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button id="pauseButton" class="icon-button hidden" type="button" aria-label="Pause game">Ⅱ</button>
+            <button id="muteButton" class="icon-button" type="button" aria-label="Mute sound">♪</button>
+          </div>
+        </header>
+
+        <div class="play-stage">
+          <canvas id="gameCanvas" class="game-canvas" aria-label="HeadFlight game area"></canvas>
+          <video id="cameraFeed" class="camera-feed" playsinline muted aria-label="Front camera preview"></video>
+
+          <section id="startScreen" class="panel start-panel">
+            <div class="orbit-bird" aria-hidden="true"><span>●</span></div>
+            <p class="eyebrow">CAMERA-CONTROLLED FLIGHT</p>
+            <h2>Your head is the joystick.</h2>
+            <p class="lead">Move up and down to guide the bird through an endless skyline. A short calibration makes the motion feel natural.</p>
+            <button id="enableCameraButton" class="primary-action" type="button">Enable camera</button>
+            <p class="privacy-note"><span class="privacy-dot"></span> Video is processed on this device and is never uploaded.</p>
+          </section>
+
+          <section id="loadingScreen" class="panel loading-panel hidden" aria-live="polite">
+            <div class="loader" aria-hidden="true"></div>
+            <h2>Preparing your cockpit</h2>
+            <p id="loadingStatus">Requesting camera…</p>
+          </section>
+
+          <section id="calibrationScreen" class="calibration-layout hidden">
+            <div class="calibration-card">
+              <p class="eyebrow">QUICK CALIBRATION</p>
+              <h2>Find your centre</h2>
+              <ol>
+                <li>Hold your iPhone comfortably and face the camera.</li>
+                <li>Keep your head at its natural resting height.</li>
+                <li>Tap Ready when the indicator turns green.</li>
+              </ol>
+              <div id="trackingPill" class="tracking-pill"><span></span><b>Looking for your face…</b></div>
+              <button id="readyButton" class="primary-action" type="button" disabled>I’m ready</button>
+            </div>
+          </section>
+
+          <div id="scoreChip" class="score-chip hidden" aria-live="polite"><span>Score</span><strong id="liveScore">0</strong></div>
+          <div id="cameraStatus" class="camera-status hidden">● <span>Tracking</span></div>
+
+          <section id="gameoverScreen" class="panel gameover-panel hidden">
+            <p class="eyebrow">FLIGHT COMPLETE</p>
+            <h2 id="resultMessage">Nice first flight.</h2>
+            <div class="final-score"><span>Score</span><strong id="finalScore">0</strong></div>
+            <button id="playAgainButton" class="primary-action" type="button">Play again</button>
+            <p>Recalibrate before each run for the cleanest control.</p>
+          </section>
+
+          <section id="errorScreen" class="panel error-panel hidden" role="alert">
+            <div class="error-icon" aria-hidden="true">×</div>
+            <p class="eyebrow">CAMERA UNAVAILABLE</p>
+            <h2>We couldn’t start head tracking.</h2>
+            <p id="errorMessage" class="lead"></p>
+            <button id="retryButton" class="primary-action" type="button">Try again</button>
+            <p>Your video is never recorded or uploaded.</p>
+          </section>
+
+          <section id="rotateNotice" class="rotate-notice hidden">
+            <strong>Landscape works best</strong>
+            <span>Rotate your iPhone for a wider flight path.</span>
+            <button id="continuePortraitButton" type="button">Continue in portrait</button>
+          </section>
+        </div>
+
+        <footer class="game-footer">
+          <span>Move your head up to climb</span>
+          <span>Move your head down to descend</span>
+          <span class="local-only"><i></i> Local processing only</span>
+        </footer>
+      </section>
+    </main>
+
+    <noscript>This game needs JavaScript enabled to use camera-based controls.</noscript>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
