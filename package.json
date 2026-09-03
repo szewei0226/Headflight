@@ -1,13 +1,10 @@
 {
   "name": "headflight-github-pages",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs"
-  },
-  "dependencies": {
-    "@mediapipe/tasks-vision": "0.10.22"
   },
   "engines": {
     "node": ">=20"

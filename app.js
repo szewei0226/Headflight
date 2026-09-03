@@ -1,17 +1,12 @@
 const APP_BASE = new URL(".", import.meta.url);
 const MEDIAPIPE_MODULES = [
   new URL("./vendor/vision_bundle.mjs", APP_BASE).href,
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs",
-  "https://unpkg.com/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs?module",
 ];
 const MEDIAPIPE_WASM_ROOTS = [
   new URL("./vendor/wasm", APP_BASE).href,
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm",
-  "https://unpkg.com/@mediapipe/tasks-vision@0.10.22/wasm",
 ];
 const FACE_MODELS = [
   new URL("./models/face_landmarker.task", APP_BASE).href,
-  "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
 ];
 
 const screens = {
