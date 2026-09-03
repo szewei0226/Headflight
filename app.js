@@ -37,6 +37,9 @@ const finalScore = document.querySelector("#finalScore");
 const resultMessage = document.querySelector("#resultMessage");
 const errorMessage = document.querySelector("#errorMessage");
 const rotateNotice = document.querySelector("#rotateNotice");
+const difficultyButtons = [...document.querySelectorAll(".difficulty-option")];
+const difficultyValue = document.querySelector("#difficultyValue");
+const difficultyDescription = document.querySelector("#difficultyDescription");
 
 let currentScreen = "start";
 let mediaStream = null;
@@ -54,10 +57,32 @@ let audioContext = null;
 let pendingPortraitStart = false;
 let portraitNoticeSeen = false;
 let setupStage = "startup";
+let difficultyLevel = 5;
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const isTouchPhone = () => navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) < 600;
 const isPortrait = () => window.matchMedia("(orientation: portrait)").matches;
+const difficultyNames = ["Gentle", "Relaxed", "Easy", "Steady", "Balanced · original game", "Brisk", "Hard", "Intense", "Expert", "Extreme"];
+
+function selectDifficulty(level) {
+  difficultyLevel = clamp(Math.round(Number(level) || 5), 1, 10);
+  difficultyValue.textContent = String(difficultyLevel);
+  difficultyDescription.textContent = difficultyNames[difficultyLevel - 1];
+  difficultyButtons.forEach((button) => {
+    const selected = Number(button.dataset.level) === difficultyLevel;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function difficultyTuning(level) {
+  const offsetFromOriginal = level - 5;
+  return {
+    speedScale: 1 + offsetFromOriginal * 0.075,
+    gapScale: 1 - offsetFromOriginal * 0.05,
+    spawnIntervalScale: 1 - offsetFromOriginal * 0.04,
+  };
+}
 
 function activateAudio() {
   if (audioContext) {
@@ -107,7 +132,7 @@ function setScreen(next) {
   scoreChip.classList.toggle("hidden", !playing);
   cameraStatus.classList.toggle("hidden", !playing);
   video.classList.toggle("camera-large", next === "calibrate");
-  video.classList.toggle("camera-small", playing);
+  video.classList.remove("camera-small");
   if (!playing && gameFrame) {
     cancelAnimationFrame(gameFrame);
     gameFrame = 0;
@@ -271,10 +296,11 @@ function beginRun() {
 
 function startGameLoop() {
   const bird = { x: 0, y: 0, velocity: 0, radius: 17 };
+  const tuning = difficultyTuning(difficultyLevel);
   let gates = [];
   let lastTime = performance.now();
   let elapsed = 0;
-  let spawnTimer = 0.8;
+  let spawnTimer = 0.8 * tuning.spawnIntervalScale;
   let score = 0;
 
   function resizeCanvas() {
@@ -308,12 +334,13 @@ function startGameLoop() {
     if (!movementPaused) {
       elapsed += dt;
       spawnTimer -= dt;
-      const speed = Math.min(250, 140 + elapsed * 2.0);
-      const gap = Math.max(122, Math.min(height * 0.38, 190 - elapsed * 0.5));
+      const speed = Math.min(250, 140 + elapsed * 2.0) * tuning.speedScale;
+      const originalGap = Math.max(122, Math.min(height * 0.38, 190 - elapsed * 0.5));
+      const gap = difficultyLevel === 5 ? originalGap : clamp(originalGap * tuning.gapScale, 92, height * 0.56);
       if (spawnTimer <= 0) {
         const margin = gap * 0.65;
         gates.push({ x: width + 60, gapY: margin + Math.random() * Math.max(10, height - margin * 2), gap, passed: false });
-        spawnTimer = Math.max(1.3, 1.74 - elapsed * 0.006);
+        spawnTimer = Math.max(1.3, 1.74 - elapsed * 0.006) * tuning.spawnIntervalScale;
       }
 
       let headDelta = smoothHeadY - neutralHeadY;
@@ -351,10 +378,43 @@ function startGameLoop() {
   gameFrame = requestAnimationFrame(frame);
 }
 
+function drawCameraBackground(width, height) {
+  context.save();
+  if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+    const sourceAspect = video.videoWidth / video.videoHeight;
+    const targetAspect = width / height;
+    let sourceX = 0;
+    let sourceY = 0;
+    let sourceWidth = video.videoWidth;
+    let sourceHeight = video.videoHeight;
+
+    if (sourceAspect > targetAspect) {
+      sourceWidth = video.videoHeight * targetAspect;
+      sourceX = (video.videoWidth - sourceWidth) * 0.5;
+    } else {
+      sourceHeight = video.videoWidth / targetAspect;
+      sourceY = (video.videoHeight - sourceHeight) * 0.5;
+    }
+
+    context.translate(width, 0);
+    context.scale(-1, 1);
+    context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
+  } else {
+    context.fillStyle = "#101939";
+    context.fillRect(0, 0, width, height);
+  }
+  context.restore();
+
+  const tint = context.createLinearGradient(0, 0, 0, height);
+  tint.addColorStop(0, "rgba(7, 16, 42, 0.42)");
+  tint.addColorStop(0.58, "rgba(18, 35, 74, 0.32)");
+  tint.addColorStop(1, "rgba(45, 22, 45, 0.48)");
+  context.fillStyle = tint;
+  context.fillRect(0, 0, width, height);
+}
+
 function drawScene(width, height, elapsed, gates, bird) {
-  const gradient = context.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, "#101b43"); gradient.addColorStop(0.58, "#263e7a"); gradient.addColorStop(1, "#ee7d69");
-  context.fillStyle = gradient; context.fillRect(0, 0, width, height);
+  drawCameraBackground(width, height);
 
   context.globalAlpha = 0.55;
   for (let index = 0; index < 24; index += 1) {
@@ -397,6 +457,7 @@ function drawPause(width, height, trackingLost) {
 
 enableCameraButton.addEventListener("click", startCamera);
 retryButton.addEventListener("click", startCamera);
+difficultyButtons.forEach((button) => button.addEventListener("click", () => selectDifficulty(button.dataset.level)));
 readyButton.addEventListener("click", prepareRun);
 playAgainButton.addEventListener("click", () => {
   paused = false;
@@ -437,4 +498,5 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", stopCamera);
 
+selectDifficulty(5);
 setScreen("start");

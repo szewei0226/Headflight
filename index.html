@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Guide a tiny bird through an endless neon sky using your head position." />
     <title>HeadFlight — Camera-Controlled Flying Game</title>
-    <link rel="stylesheet" href="./styles.css?v=1.2.0" />
+    <link rel="stylesheet" href="./styles.css?v=1.3.0" />
   </head>
   <body>
     <main class="game-page">
@@ -36,6 +36,29 @@
             <p class="eyebrow">CAMERA-CONTROLLED FLIGHT</p>
             <h2>Your head is the joystick.</h2>
             <p class="lead">Move up and down to guide the bird through an endless skyline. A short calibration makes the motion feel natural.</p>
+            <section class="difficulty-picker" aria-labelledby="difficultyTitle">
+              <div class="difficulty-heading">
+                <span id="difficultyTitle">Choose difficulty</span>
+                <strong><span id="difficultyValue">5</span>/10</strong>
+              </div>
+              <div class="difficulty-grid" role="group" aria-label="Difficulty level">
+                <button class="difficulty-option" type="button" data-level="1" aria-pressed="false" aria-label="Difficulty level 1">1</button>
+                <button class="difficulty-option" type="button" data-level="2" aria-pressed="false" aria-label="Difficulty level 2">2</button>
+                <button class="difficulty-option" type="button" data-level="3" aria-pressed="false" aria-label="Difficulty level 3">3</button>
+                <button class="difficulty-option" type="button" data-level="4" aria-pressed="false" aria-label="Difficulty level 4">4</button>
+                <button class="difficulty-option selected" type="button" data-level="5" aria-pressed="true" aria-label="Difficulty level 5, original game">5</button>
+                <button class="difficulty-option" type="button" data-level="6" aria-pressed="false" aria-label="Difficulty level 6">6</button>
+                <button class="difficulty-option" type="button" data-level="7" aria-pressed="false" aria-label="Difficulty level 7">7</button>
+                <button class="difficulty-option" type="button" data-level="8" aria-pressed="false" aria-label="Difficulty level 8">8</button>
+                <button class="difficulty-option" type="button" data-level="9" aria-pressed="false" aria-label="Difficulty level 9">9</button>
+                <button class="difficulty-option" type="button" data-level="10" aria-pressed="false" aria-label="Difficulty level 10">10</button>
+              </div>
+              <div class="difficulty-caption">
+                <span>Easy</span>
+                <b id="difficultyDescription">Balanced · original game</b>
+                <span>Expert</span>
+              </div>
+            </section>
             <button id="enableCameraButton" class="primary-action" type="button">Enable camera</button>
             <p class="privacy-note"><span class="privacy-dot"></span> Video is processed on this device and is never uploaded.</p>
           </section>
@@ -96,6 +119,6 @@
     </main>
 
     <noscript>This game needs JavaScript enabled to use camera-based controls.</noscript>
-    <script type="module" src="./app.js?v=1.2.0"></script>
+    <script type="module" src="./app.js?v=1.3.0"></script>
   </body>
 </html>

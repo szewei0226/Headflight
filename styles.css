@@ -101,6 +101,28 @@ button { min-height: 44px; font: inherit; touch-action: manipulation; cursor: po
 }
 .primary-action:active { transform: scale(0.98); filter: brightness(1.05); }
 .primary-action:disabled { opacity: 0.38; cursor: default; }
+.difficulty-picker {
+  margin: -7px auto 24px;
+  padding: 15px;
+  border: 1px solid rgba(201, 217, 255, 0.14);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.difficulty-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 11px; color: #c5cfea; font-size: 0.84rem; font-weight: 750; }
+.difficulty-heading strong { color: #ffda62; font-size: 1rem; }
+.difficulty-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.difficulty-option {
+  min-width: 0; min-height: 42px; padding: 0;
+  border: 1px solid rgba(201, 217, 255, 0.16); border-radius: 11px;
+  color: #aebadc; background: rgba(255, 255, 255, 0.045); font-size: 0.84rem; font-weight: 850;
+}
+.difficulty-option:active { transform: scale(0.95); }
+.difficulty-option:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.difficulty-option.selected { border-color: rgba(255, 211, 84, 0.62); color: #152044; background: linear-gradient(145deg, #ffe06c, #ffb14b); box-shadow: 0 7px 20px rgba(255, 184, 73, 0.18); }
+.difficulty-caption { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-top: 9px; color: #7484ad; font-size: 0.7rem; }
+.difficulty-caption span:first-child { text-align: left; }
+.difficulty-caption span:last-child { text-align: right; }
+.difficulty-caption b { color: #9eadd1; font-weight: 700; }
 .privacy-note { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 21px 0 0; color: #8998bf; font-size: 0.82rem; }
 .privacy-dot, .local-only i { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #58e5b6; box-shadow: 0 0 13px #58e5b6; }
 .orbit-bird { position: relative; width: 82px; height: 82px; margin: -8px auto 22px; display: grid; place-items: center; border: 1px solid rgba(255, 223, 110, 0.26); border-radius: 50%; }
@@ -114,8 +136,7 @@ button { min-height: 44px; font: inherit; touch-action: manipulation; cursor: po
 @keyframes spin { to { transform: rotate(360deg); } }
 .camera-feed { object-fit: cover; transform: scaleX(-1); background: #080e23; transition: all 0.28s ease; }
 .camera-feed.camera-large { position: absolute; z-index: 1; inset: 0; width: 55%; height: 100%; opacity: 0.82; -webkit-mask-image: linear-gradient(to right, black 60%, transparent 100%); mask-image: linear-gradient(to right, black 60%, transparent 100%); }
-.camera-feed.camera-small { position: absolute; z-index: 3; right: 16px; bottom: 16px; width: 132px; height: 94px; border: 2px solid rgba(106, 235, 189, 0.6); border-radius: 18px; box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35); }
-.camera-feed:not(.camera-large):not(.camera-small) { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.camera-feed:not(.camera-large) { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .calibration-layout { position: absolute; inset: 0; z-index: 2; display: flex; justify-content: flex-end; align-items: center; padding: 38px 6%; }
 .calibration-card { width: min(440px, 48%); max-height: calc(100% - 24px); overflow-y: auto; padding: 34px; border: 1px solid var(--line); border-radius: 28px; background: rgba(10, 18, 43, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .calibration-card h2 { font-size: 2.7rem; }
@@ -129,7 +150,7 @@ button { min-height: 44px; font: inherit; touch-action: manipulation; cursor: po
 .score-chip { position: absolute; z-index: 4; top: 16px; left: 16px; display: flex; align-items: baseline; gap: 10px; padding: 9px 15px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 14px; background: rgba(8, 14, 35, 0.58); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .score-chip span { color: #c1cce8; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
 .score-chip strong { color: #ffdb64; font-size: 1.65rem; }
-.camera-status { position: absolute; z-index: 4; right: 23px; bottom: 116px; padding: 8px 11px; border-radius: 10px; background: rgba(8, 14, 35, 0.76); color: #ff8798; font-size: 0.78rem; font-weight: 750; }
+.camera-status { position: absolute; z-index: 4; right: 16px; bottom: 16px; padding: 8px 11px; border-radius: 10px; background: rgba(8, 14, 35, 0.76); color: #ff8798; font-size: 0.78rem; font-weight: 750; }
 .camera-status.online { color: #73ecc3; }
 .gameover-panel { width: min(470px, calc(100% - 32px)); }
 .gameover-panel h2 { font-size: 2.6rem; }
@@ -153,13 +174,13 @@ button { min-height: 44px; font: inherit; touch-action: manipulation; cursor: po
   .play-stage { min-height: 0; }
   .panel { padding: 32px 21px; }
   .panel h2 { font-size: clamp(2rem, 10vw, 3rem); }
+  .difficulty-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .calibration-layout { align-items: flex-end; padding: 14px; }
   .calibration-card { width: 100%; padding: 22px; }
   .calibration-card h2 { font-size: 2.15rem; }
   .calibration-card ol { margin: 14px 0; font-size: 0.92rem; }
   .camera-feed.camera-large { width: 100%; height: 52%; top: 0; -webkit-mask-image: linear-gradient(to bottom, black 48%, transparent 100%); mask-image: linear-gradient(to bottom, black 48%, transparent 100%); }
-  .camera-feed.camera-small { width: 104px; height: 78px; right: 12px; bottom: 12px; border-radius: 15px; }
-  .camera-status { right: 14px; bottom: 98px; }
+  .camera-status { right: 12px; bottom: 12px; }
   .game-footer { min-height: 48px; justify-content: center; }
   .game-footer > span:not(.local-only) { display: none; }
   .local-only { margin-left: 0; }
@@ -176,6 +197,10 @@ button { min-height: 44px; font: inherit; touch-action: manipulation; cursor: po
   .panel h2 { font-size: 2rem; }
   .lead { margin-bottom: 16px; line-height: 1.45; }
   .privacy-note { margin-top: 12px; }
+  .difficulty-picker { margin-bottom: 14px; padding: 10px 12px; }
+  .difficulty-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; }
+  .difficulty-option { min-height: 36px; }
+  .difficulty-caption { margin-top: 6px; }
   .calibration-card { padding: 18px 22px; }
   .calibration-card h2 { font-size: 1.9rem; }
   .calibration-card ol { margin: 10px 0; line-height: 1.4; }
