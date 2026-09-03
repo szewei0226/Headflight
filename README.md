@@ -1,31 +1,31 @@
-# HeadFlight — GitHub Pages edition
+# HeadFlight — iPhone GitHub Pages edition 1.1
 
-This edition is a static website designed for GitHub Pages and recent iPhone Safari versions. It has no build step and no server-side dependencies.
+This version fixes the common iPhone failure where camera permission succeeds but the external face-tracking resources fail afterward. GitHub Actions now downloads MediaPipe, its WebAssembly files, and the face model while publishing. Safari receives them from the same HTTPS address as the game.
 
-## Publish with the GitHub website
+## Update an existing `headflight` repository
 
-1. Sign in at https://github.com and create a new repository named `headflight`.
-2. Choose **Public**. GitHub Pages availability for private repositories depends on your GitHub plan.
-3. Extract `HeadFlight-GitHub-Pages.zip` on a computer.
-4. In the empty repository, choose **Add file → Upload files**.
-5. Upload the contents of this folder—not the ZIP itself. `index.html` must be at the repository root.
-6. Commit the files to the `main` branch.
-7. Open **Settings → Pages**.
-8. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-9. Select branch **main**, folder **/(root)**, then choose **Save**.
-10. Wait for the Pages deployment to complete. GitHub will show the live address.
+Use a computer for this update because the package contains nested `.github/workflows` and `scripts` folders.
 
-The normal address is:
+1. Extract `HeadFlight-GitHub-Pages.zip`.
+2. Copy all extracted files and folders into your local `headflight` repository, replacing the older files.
+3. In Terminal or Command Prompt, from that repository, run:
 
-```text
-https://YOUR-USERNAME.github.io/headflight/
+```bash
+git add .
+git commit -m "Fix iPhone camera tracking"
+git push
 ```
 
-GitHub documentation: https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
+4. On GitHub, open **Settings → Pages**.
+5. Under **Build and deployment**, change **Source** to **GitHub Actions**.
+6. Open the repository's **Actions** tab and select **Deploy HeadFlight to GitHub Pages**.
+7. Wait for its status to become green. Use the URL shown in the deployment result.
 
-## Publish with Git on a computer
+## Create a new repository
 
-Create the empty GitHub repository first, open a terminal inside this folder, and run:
+1. Create an empty public GitHub repository named `headflight`.
+2. Extract this ZIP on a computer and open Terminal or Command Prompt inside the extracted folder.
+3. Run the following, replacing `YOUR-USERNAME`:
 
 ```bash
 git init
@@ -36,26 +36,43 @@ git remote add origin https://github.com/YOUR-USERNAME/headflight.git
 git push -u origin main
 ```
 
-Then enable GitHub Pages using steps 7–9 above.
+4. Open **Settings → Pages** and select **GitHub Actions** as the publishing source.
+5. Open **Actions** and wait for **Deploy HeadFlight to GitHub Pages** to finish.
+
+The normal address is:
+
+```text
+https://YOUR-USERNAME.github.io/headflight/
+```
+
+GitHub documentation: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 
 ## Use on iPhone
 
-1. Open the HTTPS Pages link directly in Safari. Avoid opening it inside an email or social-media app's embedded browser.
+1. Open the HTTPS Pages link directly in Safari, not an embedded browser inside another app.
 2. Tap **Enable camera** and choose **Allow**.
-3. Hold the phone still, centre your head, and tap **I'm ready** when the indicator is green.
-4. Landscape gives a wider game area, but portrait mode is supported.
-5. Keep an internet connection available: the face-tracking library and model download when the game starts. Camera images stay on the device and are not uploaded.
+3. Keep the page open while the tracker starts. The first launch may take several seconds.
+4. Centre your head and tap **I'm ready** when the indicator turns green.
+5. Landscape gives a wider game area, but portrait is supported.
 
-Optional: use Safari's **Share → Add to Home Screen** command for an app-like shortcut.
+The camera frames are processed locally and are not recorded or uploaded. The deployed tracker code and model are downloaded from your own GitHub Pages address.
 
-## iPhone troubleshooting
+## Troubleshooting
 
-- **Camera permission denied:** Open iPhone **Settings → Apps → Safari → Camera** and select **Ask** or **Allow**, then reload the game.
-- **Blank camera or camera busy:** Close other apps using the camera, close the Safari tab, and reopen the Pages link.
-- **Tracker remains on “Loading”:** Disable content blockers for the page and check the internet connection. The game needs access to jsDelivr and Google's MediaPipe model host.
-- **Page shows source files instead of the game:** Confirm that `index.html` is in the repository root and Pages is configured for `main` and `/(root)`.
-- **Changes are not visible:** Wait a minute, reload the page, or open the link in a new private tab to bypass the previous cached version.
+- **The old Camera unavailable screen still appears immediately:** verify that the latest GitHub Action is green, then close the Safari tab and reopen the Pages link. Version 1.1 adds `?v=1.1.0` to refresh cached code.
+- **The message says the camera was allowed but its preview could not start:** close FaceTime and other camera apps, restart Safari, and try again.
+- **The message says face-tracking code or model could not load:** open the GitHub Actions result and check that the build completed. The workflow must deploy `dist`, not the repository root.
+- **The workflow does not start:** confirm the workflow exists at `.github/workflows/pages.yml`, the branch is named `main`, and Pages Source is **GitHub Actions**.
+- **Camera permission:** in Safari, open the page controls and set Camera to Allow. You can also review **iPhone Settings → Apps → Safari → Camera**.
+- **Tracker is slow:** close other Safari tabs and use landscape orientation. The game already limits tracking to approximately 24–26 updates per second.
 
-## Privacy
+## Deployment contents
 
-The camera stream is processed in Safari with MediaPipe Face Landmarker. Frames are not recorded, stored, or transmitted by this project. The browser downloads the face-tracking code and model from their public hosts.
+The workflow creates `dist/` with:
+
+- the game HTML, CSS, and JavaScript;
+- MediaPipe's JavaScript bundle;
+- MediaPipe WebAssembly runtime files; and
+- the Face Landmarker model.
+
+No Node.js server runs after deployment; GitHub Pages serves ordinary static files over HTTPS.

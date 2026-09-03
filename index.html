@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Guide a tiny bird through an endless neon sky using your head position." />
     <title>HeadFlight — Camera-Controlled Flying Game</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=1.1.0" />
   </head>
   <body>
     <main class="game-page">
@@ -29,7 +29,7 @@
 
         <div class="play-stage">
           <canvas id="gameCanvas" class="game-canvas" aria-label="HeadFlight game area"></canvas>
-          <video id="cameraFeed" class="camera-feed" playsinline muted aria-label="Front camera preview"></video>
+          <video id="cameraFeed" class="camera-feed" autoplay playsinline muted aria-label="Front camera preview"></video>
 
           <section id="startScreen" class="panel start-panel">
             <div class="orbit-bird" aria-hidden="true"><span>●</span></div>
@@ -96,6 +96,6 @@
     </main>
 
     <noscript>This game needs JavaScript enabled to use camera-based controls.</noscript>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=1.1.0"></script>
   </body>
 </html>

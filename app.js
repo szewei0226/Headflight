@@ -1,6 +1,18 @@
-const MEDIAPIPE_MODULE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs";
-const MEDIAPIPE_WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm";
-const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+const APP_BASE = new URL(".", import.meta.url);
+const MEDIAPIPE_MODULES = [
+  new URL("./vendor/vision_bundle.mjs", APP_BASE).href,
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs",
+  "https://unpkg.com/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs?module",
+];
+const MEDIAPIPE_WASM_ROOTS = [
+  new URL("./vendor/wasm", APP_BASE).href,
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm",
+  "https://unpkg.com/@mediapipe/tasks-vision@0.10.22/wasm",
+];
+const FACE_MODELS = [
+  new URL("./models/face_landmarker.task", APP_BASE).href,
+  "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+];
 
 const screens = {
   start: document.querySelector("#startScreen"),
@@ -46,6 +58,7 @@ let muted = false;
 let audioContext = null;
 let pendingPortraitStart = false;
 let portraitNoticeSeen = false;
+let setupStage = "startup";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const isTouchPhone = () => navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) < 600;
@@ -111,13 +124,64 @@ function cameraErrorText(error) {
   if (error?.name === "NotAllowedError" || error?.name === "SecurityError") return "Camera permission was denied. In iPhone Settings, open Safari, check Camera permission, then reload this page.";
   if (error?.name === "NotFoundError" || error?.name === "DevicesNotFoundError") return "No front camera was found on this device.";
   if (error?.name === "NotReadableError") return "The camera is being used by another app. Close that app and try again.";
+  const detail = error?.message ? ` ${error.message}` : "";
+  if (setupStage === "video") return `The camera was allowed, but Safari could not start its preview.${detail}`;
+  if (setupStage === "tracker-code") return `The camera works, but the face-tracking code could not load.${detail}`;
+  if (setupStage === "tracker-model") return `The camera works, but the face model or WebAssembly engine could not start.${detail}`;
   return error?.message || "Camera or face tracking could not be started. Check your connection and try again.";
+}
+
+async function importVisionLibrary() {
+  const failures = [];
+  for (const moduleUrl of MEDIAPIPE_MODULES) {
+    try {
+      return await import(moduleUrl);
+    } catch (error) {
+      failures.push(error?.message || "module unavailable");
+    }
+  }
+  throw new Error(`All tracker sources failed (${failures.join(" | ")}).`);
+}
+
+async function createFaceTracker(vision) {
+  const failures = [];
+  const commonOptions = {
+    runningMode: "VIDEO",
+    numFaces: 1,
+    minFaceDetectionConfidence: 0.5,
+    minFacePresenceConfidence: 0.5,
+    minTrackingConfidence: 0.5,
+  };
+
+  for (const wasmRoot of MEDIAPIPE_WASM_ROOTS) {
+    let fileset;
+    try {
+      fileset = await vision.FilesetResolver.forVisionTasks(wasmRoot);
+    } catch (error) {
+      failures.push(`engine: ${error?.message || "unavailable"}`);
+      continue;
+    }
+    for (const modelAssetPath of FACE_MODELS) {
+      for (const delegate of ["GPU", "CPU"]) {
+        try {
+          return await vision.FaceLandmarker.createFromOptions(fileset, {
+            ...commonOptions,
+            baseOptions: { modelAssetPath, delegate },
+          });
+        } catch (error) {
+          failures.push(`${delegate}: ${error?.message || "initialization failed"}`);
+        }
+      }
+    }
+  }
+  throw new Error(failures.slice(-4).join(" | "));
 }
 
 async function startCamera() {
   activateAudio();
   setScreen("loading");
   loadingStatus.textContent = "Requesting camera…";
+  setupStage = "camera";
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error("This browser does not support camera access. Open the link in Safari on a recent iPhone.");
     if (!window.isSecureContext && location.hostname !== "localhost") throw new Error("Camera access requires an HTTPS address.");
@@ -131,36 +195,25 @@ async function startCamera() {
       },
       audio: false,
     });
+    setupStage = "video";
     video.srcObject = mediaStream;
     video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
     video.setAttribute("playsinline", "");
     await video.play();
 
     loadingStatus.textContent = "Loading face tracker…";
-    const vision = await import(MEDIAPIPE_MODULE);
-    const fileset = await vision.FilesetResolver.forVisionTasks(MEDIAPIPE_WASM);
-    const commonOptions = {
-      runningMode: "VIDEO",
-      numFaces: 1,
-      minFaceDetectionConfidence: 0.55,
-      minFacePresenceConfidence: 0.55,
-      minTrackingConfidence: 0.55,
-    };
-    try {
-      faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
-        ...commonOptions,
-        baseOptions: { modelAssetPath: FACE_MODEL, delegate: "GPU" },
-      });
-    } catch {
-      faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
-        ...commonOptions,
-        baseOptions: { modelAssetPath: FACE_MODEL, delegate: "CPU" },
-      });
-    }
+    setupStage = "tracker-code";
+    const vision = await importVisionLibrary();
+    loadingStatus.textContent = "Starting face model…";
+    setupStage = "tracker-model";
+    faceLandmarker = await createFaceTracker(vision);
 
     faceSeenAt = performance.now();
     smoothHeadY = 0.5;
     trackerFrame = requestAnimationFrame(trackFace);
+    setupStage = "ready";
     setScreen("calibrate");
   } catch (error) {
     stopCamera();
